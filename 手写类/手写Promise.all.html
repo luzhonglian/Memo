@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <body>
+    <script>
+      Promise._all_ = function (iterable) {
+        if (typeof iterable[Symbol.iterator] !== "function") {
+          throw new Error("err");
+        }
+        let resolved_items = 0;
+        let length = iterable.length;
+        let arr = [];
+        if (length === 0) return Promise.resolve();//空数组返回的state是fulfilled
+        return new Promise((res, rej) => {
+          iterable.forEach((item, index) => {
+            Promise.resolve(item).then(
+              (result) => {
+                arr[index] = result;
+                resolved_items++;
+                if (resolved_items === length) {
+                  res(arr);
+                }
+              },
+              (reason) => {
+                rej([reason,arr]);//如果要把成功了的返回值也返回出来
+              }
+            );
+          });
+        });
+      };
+      let p1 = Promise.resolve(22);
+      let p_err = Promise.reject("no");
+      let p_all=Promise._all_([1,p1,p_err])
+    //   let p_all = Promise._all_([]);
+      console.log(p_all);
+      p_all.catch((e) => {});
+      p_err.catch((e) => {});
+    </script>
+  </body>
+</html>

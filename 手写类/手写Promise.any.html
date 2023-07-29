@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <body>
+    <script>
+      Promise._any_ = function (iterable) {
+        if (typeof iterable[Symbol.iterator] != "function") {
+          throw new TypeError("err");
+        }
+        let arr = [...iterable];
+        if (arr.length == 0) {
+          return Promise.reject(
+            new AggregateError([], "No Promise in Promise.any was resolved")
+          );
+        }
+        let i=0
+        return new Promise((res, rej) => {
+          let errors = [];
+          arr.forEach((pro, index) => {
+            Promise.resolve(pro).then(
+              (result) => {
+                res(result);
+              },
+              (reason) => {
+                errors[index] = reason;
+                i++
+                if (i === arr.length) {//全rejected
+                  rej(
+                    new AggregateError(
+                      errors,
+                      "No Promise in Promise.any was resolved"
+                    )
+                  );
+                }
+              }
+            );
+          });
+        });
+      };
+
+      var resolved = Promise.resolve("1st resolve");
+      var resolved2 = Promise.resolve(12);
+
+      var rejected = new Promise((res, rej) => {
+        setTimeout(rej, 100, "1st rej");
+      });
+      var alsoRejected = Promise.reject(Infinity);
+      //----------------------------------------
+         let two_resolved_p = Promise.any([
+        rejected,
+        alsoRejected,
+        resolved,
+        resolved2,
+      ]); 
+      let my_two_resolved_p = Promise._any_([
+        alsoRejected,
+        resolved,
+        resolved2,
+        rejected,
+      ]);
+      console.log(two_resolved_p,my_two_resolved_p);
+      //----------------------------------------
+      let all_rejected_p = Promise.any([rejected, alsoRejected]);
+      let my_all_rejected_p = Promise._any_([rejected, alsoRejected]);
+      console.log(all_rejected_p,my_all_rejected_p);
+      all_rejected_p.catch(() => {});
+      my_all_rejected_p.catch(() => {});
+      //----------------------------------------
+      let empty = Promise.any([]);
+      let _empty_ = Promise._any_([]);
+      empty.catch(() => {});
+      _empty_.catch(() => {});
+      console.log(empty, _empty_); 
+    </script>
+  </body>
+</html>

@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <body>
+    <script>
+      let sym_prop=Symbol('symbol')
+      var obj = {
+        name: "lzl",
+        age: 18,
+        hobby: {
+          read: "book",
+          run: 10,
+        },
+        [sym_prop]:'my key is symbol',
+        sym: Symbol("sym"),
+        un: undefined,
+        arr: [1, 5],
+        isNull: null,
+        speak() {
+          console.log("speak");
+        },
+      };
+      var clonedByJSON = JSON.parse(JSON.stringify(obj));
+      console.log("使用json方法会丢失函数,symbol,undifined", clonedByJSON);
+      /* 函数会用到迭代，使用weakMap进行判断是否 */
+      function deepClone(obj, map = new WeakMap()) {
+        //避免循环引用使函数无限循环
+        if (map.has(obj)) {
+          return map.get(obj);
+        }
+        //symbol
+        if (typeof obj == "symbol") {
+          return Symbol(obj.description);
+        }     
+        //深拷贝函数
+        if (obj instanceof Function) {
+          let fnStr = obj.toString();
+          fnStr=fnStr.indexOf('function')!=-1?fnStr:`function ${fnStr}`
+          let newFn = new Function(`return ${fnStr}`);
+          return newFn();
+        } 
+               //除了symbol外的基础类型
+        if (typeof obj != "object" || obj === null) {
+          return obj;
+        }
+          //正则和Date的深拷贝可以通过new实现，不加new返回本身
+        if (obj instanceof RegExp || obj instanceof Date) {
+          return new obj.constructor(obj);
+        }
+        //对于可以嵌套的类型要考虑其循环引用的情况
+        let copy = obj instanceof Array ? [] : {};
+        map.set(obj, copy);
+
+        for (let key of Reflect.ownKeys(obj)) {         
+            let value = obj[key];
+            copy[key] = deepClone(value, map);          
+        }
+        return copy;
+      }
+
+      function compare(obj) {
+        console.log(
+          "原本的",
+          obj,
+          "\nclone的：",
+          deepClone(obj),
+          "\n是否相等",
+          obj === deepClone(obj)
+        );
+      }
+
+      compare(obj);
+      compare(new Date());
+      compare(Symbol(1));
+      compare(new RegExp(/w/));
+      compare([1, 2]);
+    </script>
+  </body>
+</html>

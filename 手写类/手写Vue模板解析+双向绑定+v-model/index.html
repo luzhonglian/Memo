@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <body>
+    <div id="app">
+      <ul>
+        <li>1</li>
+        <li>{{two}}<button @click="addNum">addIt</button></li>
+        <li>3</li>
+      </ul>
+      <p>his name is {{name.lzl}},her name is {{name.girl}}</p>
+      <input type="text" v-model="name.lzl"/>change his name
+    </div>
+    <div>fragment会转移DOM元素</div>
+    <script src="vue.js"></script>
+    <script>
+      const vm = new Vue({
+        el: "#app",
+        data: {
+          name: {
+            lzl: "鲁仲连",
+            girl: "beatiful girl",
+          },
+          two: 2,
+        },
+        methods: {
+          addNum(){
+            this.two++
+          //  console.log(this.two)
+          }
+        },
+      });
+
+    </script>
+  </body>
+</html>

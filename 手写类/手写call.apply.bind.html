@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <body>
+    <script>
+      let name = "window";
+      function add() {
+        let args = [...arguments];
+        console.log(this.name);
+        return this.name + " " + args;
+      }
+      //---------------------------------------------call
+      /* call改变函数this指向到obj 原理--obj调用func，this of func point to obj */
+      Function.prototype.newCall = function (obj, ...rest) {
+        let newObj = obj || window;
+        newObj.func = this;
+        let result = newObj.func(...rest);
+        Reflect.deleteProperty(newObj, "func");
+        return result;
+      };
+      console.log(add(1, 3, 5)); //window 1,3,5
+      console.log(add.call({ name: "lzl" }, 1, 3, 5)); //lzl 1,3,5
+      console.log(add.newCall({ name: "lzl" }, 1, 3, 5)); //lzl 1,3,5
+      //---------------------------------------------apply
+
+      Function.prototype.newApply = function (obj, arr) {
+        let newObj = obj || window;
+        newObj.func = this;
+        let result = newObj.func(...arr);
+        Reflect.deleteProperty(newObj, "func");
+        return result;
+      };
+      console.log("--------------------apply");
+      console.log(add.apply({ name: "lzl" }, [1, 3, 5])); //lzl 1,3,5
+      console.log(add.newApply({ name: "lzl" }, [[1, 3, 5]])); //lzl 1,3,5
+
+      //---------------------------------------------bind
+      /*
+       bind返回一个this指向obj的函数，并放入预留参数
+       但调用的时候可以继续添加参数
+*/
+      Function.prototype.newBind = function (obj, ...rest) {
+        if (typeof this != "function") {
+          throw new TypeError("error");
+        }
+        let original_func = this;
+        let newObj = obj || window;
+        newObj.func = this;
+        function bindedFunc() {
+          let newRest = [...rest, ...arguments]; //merge all args
+          if (this instanceof original_func) {
+            //使用new,this指向new出来的
+            return newObj.func.newApply(this, newRest);
+          } else {
+            return newObj.func(...newRest);
+          }
+        }
+        bindedFunc.prototype = Object.create(this.prototype);
+        return bindedFunc;
+      };
+      console.log("--------------------bind");
+      console.log(add.bind({ name: "lzl" }, 1, 3, 5)(7)); //lzl 1,3,5
+      console.log(add.newBind({ name: "lzl" }, 1, 3, 5)(7)); //lzl 1,3,5
+      console.log("---------------------------new binded func");
+      //实际的bind new后会使this指向失效，且不丢失原型
+      add.prototype.x = "x";
+      let bindedAdd = add.bind({ name: "lzl" }, 2, 4, 6);
+      console.log(bindedAdd); //BoundFunctionObject { … }
+      let ba = new bindedAdd(); ///undefined
+      console.log(ba.x); //x
+
+      let bindednewAdd = add.newBind({ name: "lzl" }, 2, 4, 6);
+      let bna = new bindednewAdd(); //undefined
+      console.log(bna.x); //x
+    </script>
+  </body>
+</html>

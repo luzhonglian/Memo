@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <script>
+        function P(n){
+    this.n=n
+}
+function PP(n){
+    this.n=n
+    return {age:1}
+}
+
+function _new(...args){
+    const constructor=args.shift()
+    const obj=Object.create(constructor)
+    let result=constructor.apply(obj,args)
+    return typeof result ==='object' && result!== null ?result:obj
+}
+
+console.log(_new(P,'lzl'))      //Object { n: "lzl" }
+console.log(_new(PP,'lzl'))     //Object { age: 1 }
+    </script>
+</body>
+</html>

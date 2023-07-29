@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <body>
+    <script>
+      Promise._allSettled_ = function (iterable) {
+        if (typeof iterable[Symbol.iterator] !== "function") {
+          throw new TypeError("err");
+        }
+        let arr = Array.from(iterable);
+        let all_values = [];
+        if (arr.length === 0) {
+          return new Promise((res) => res());
+        }
+        let i=0
+        return new Promise((res, rej) => {
+          arr.forEach((item, index) => {
+            Promise.resolve(item).then(
+              (result) => {
+                let obj = {};
+                obj.status = "fulfilled";
+                obj.value = result;
+                all_values[index] = obj;
+                i++
+                if (i === arr.length) {
+                  res(all_values);
+                }
+              },
+              (reason) => {
+                let obj = {};
+                obj.status = "rejected";
+                obj.value = reason;
+                all_values[index] = obj;
+                i++
+                if (i === arr.length) {
+                  res(all_values);
+                }
+              }
+            );
+          });
+        });
+      };
+
+      const promise2 = Promise.resolve(3);
+      const promise1 = new Promise((resolve, reject) =>
+        setTimeout(reject, 100, "foo")
+      );
+      promise2.catch(() => {});
+      const promises = [promise1, promise2];
+      console.log(Promise.allSettled(promises), Promise._allSettled_(promises));
+    </script>
+  </body>
+</html>
