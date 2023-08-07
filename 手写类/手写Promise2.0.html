@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <body>
+    <script>
+      /* 
+      在原来自己设计的基础上让命名更合理，
+      改写then对前一个promise对象状态为pending时的处理使其更合理
+      修正了then中res/rej返回值为promise对象时的处理
+      */
+
+      /* 
+        构造函数的内容
+{
+Promise属性：state,value
+Promise传入参数 
+（res,rej）=>{}----参数是一个函数，
+函数里2个参数，2个参数都是函数
+res,rej都是promise的属性，so要在构造函数里把两个属性作为参数传进去进行调用
+} 
+
+        */
+    
+      class Commitment {
+        static PENDING = "pending";
+        static FULFILLED = "fulfilled";
+        static REJECTED = "rejected";
+        constructor(func = null) {
+          this.state = Commitment.PENDING;
+          this.value = undefined;
+          this.resolvedCallBack = [];
+          this.rejectedCallBack = [];
+          if (func != null) {
+            try {
+              func(this.resolve.bind(this), this.reject.bind(this));
+            } catch (error) {
+              this.reject(error.message);
+            }
+          }
+        }
+        resolve(result = undefined) {
+          if (this.state === Commitment.PENDING) {
+            this.state = Commitment.FULFILLED;
+            this.value = result;
+            this.resolvedCallBack.forEach((func) => func());
+          }
+        }
+        reject(reason = undefined) {
+          if (this.state === Commitment.PENDING) {
+            this.state = Commitment.REJECTED;
+            this.value = reason;
+            this.rejectedCallBack.forEach((func) => func());
+          }
+        }
+      }
+      /* then(value=>{}) */
+      Commitment.prototype.then = function (
+        onFulfilled = null,
+        onRejected = null
+      ) {
+        const former = this;
+        return new Commitment((resolve, reject) => {
+          if (former.state == Commitment.FULFILLED) {
+            setTimeout(() => {
+              //开定时器模拟then的异步行为
+              const handle_result = onFulfilled(former.value);
+              handle_result instanceof Commitment
+                ? handle_result.then(resolve, reject)
+                : resolve(handle_result);
+              /* onFul返回promise对象时，then的state和value与其同步 */
+            });
+          }
+          if (former.state == Commitment.REJECTED) {
+            setTimeout(() => {
+              const handle_result = onRejected(former.value);
+              handle_result instanceof Commitment
+                ? handle_result.then(resolve, reject)
+                : resolve(handle_result);
+              /* onRej返回promise对象时，then的state和value与其同步 */
+            });
+          }
+          if (former.state == Commitment.PENDING) {
+            former.resolvedCallBack.push(() => {
+              setTimeout(() => {
+                //开定时器模拟then的异步行为
+                const handle_result = onFulfilled(former.value);
+                handle_result instanceof Commitment
+                  ? handle_result.then(resolve, reject)
+                  : resolve(handle_result);
+                /* onFul返回promise对象时，then的state和value与其同步 */
+              });
+            });
+            former.rejectedCallBack.push(() => {
+              setTimeout(() => {
+                const handle_result = onRejected(former.value);
+                handle_result instanceof Commitment
+                  ? handle_result.then(resolve, reject)
+                  : resolve(handle_result);
+                /* onRej返回promise对象时，then的state和value与其同步 */
+              });
+            });
+          }
+        });
+      };
+
+      //-----------------------------------------------catch
+      Commitment.prototype.catch = function (onRejected) {
+        var that = this;
+        Commitment.prototype.then.call(that, null, onRejected);
+      };
+
+      //-----------------------------------------------finally
+      Commitment.prototype.finally = function (callback) {
+        var that = this;
+        Commitment.prototype.then.call(
+          that,
+          (res) => {
+            callback();
+            return res; //finally方法总是会返回原来的值
+          },
+          (err) => {
+            callback();
+            throw err; //finally方法总是会返回原来的值
+          }
+        );
+      };
+      //---------------------------test
+      var com = new Commitment((res, rej) => {
+        setTimeout(() => {
+          res(4);
+          console.log(2);
+        }, 200);
+        console.log(1);
+      });
+
+      var comthen = com
+        .then((res) => {
+          console.log(3);
+          console.log(res);
+        })
+        .then((res) => console.log(5))
+        .finally(() => {
+          console.log(6);
+        });
+      //1 2 3 4 5 6
+      //----------------------------验证Promise的输出
+      /*    var pro = new Promise((res, rej) => {
+        setTimeout(() => {
+          res(4);
+          console.log(2);
+        },200);
+        console.log(1);
+      });
+
+      var prothen = pro
+        .then((res) => {
+          console.log(3);
+          console.log(res);
+        })
+        .then((res) => console.log(5))
+        .finally(() => {
+          console.log(6);
+        }); */
+      //1 2 3 4 5 6
+    </script>
+  </body>
+</html>
