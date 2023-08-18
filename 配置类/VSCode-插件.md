@@ -20,8 +20,11 @@
 **px to rem & rpx & vw (cssrem)**  
 **Path Intellisense**  
 **JSON to TS**  
-**REST client**
->方便  
+**REST client**  
+**better comment**  
+**koroFileHeader**-->设置快捷键 Ctrl+Alt+f
+
+> 方便
 
 **Vue Language Features (Volar)**---语法支持  
 **Vue VSCode Snippets**---快速生成模板  
@@ -33,6 +36,7 @@
 **Bookmarks**-->设置快捷键 Alt+M  
 **Find-Jump**-->设置快捷键 Alt+J  
 **Wrap Console Log**
+
 ```JavaScript
 /* lzl */
 //ctrl+alt+w+w
@@ -40,4 +44,3 @@ console.log('lzl:', lzl)
 //自定义alt+c
 console.log(lzl)
 ```
-
