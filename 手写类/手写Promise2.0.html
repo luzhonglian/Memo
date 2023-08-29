@@ -25,7 +25,7 @@ res,rej都是promise的属性，so要在构造函数里把两个属性作为参�
 } 
 
         */
-    
+
       class Commitment {
         static PENDING = "pending";
         static FULFILLED = "fulfilled";
@@ -111,13 +111,13 @@ res,rej都是promise的属性，so要在构造函数里把两个属性作为参�
       //-----------------------------------------------catch
       Commitment.prototype.catch = function (onRejected) {
         var that = this;
-        Commitment.prototype.then.call(that, null, onRejected);
+        return Commitment.prototype.then.call(that, null, onRejected);
       };
 
       //-----------------------------------------------finally
       Commitment.prototype.finally = function (callback) {
         var that = this;
-        Commitment.prototype.then.call(
+        return Commitment.prototype.then.call(
           that,
           (res) => {
             callback();
