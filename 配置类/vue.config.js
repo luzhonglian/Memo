@@ -24,6 +24,7 @@ module.exports = defineConfig({
         ],
       }),
       AutoImport({
+        imports: ["vue", "vue-router"],
         resolvers: [
           // 自动导入图标组件
           IconsResolver({
